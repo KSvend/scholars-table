@@ -8,11 +8,72 @@ engine = ScholarEngine()
 scholar_names = engine.get_scholar_names()
 scholar_choices = {name: sid for sid, name in scholar_names.items()}
 
-DISCLAIMER = (
-    "This platform discusses conflict, violence, and political theory for "
-    "educational purposes. The scholars are AI personas representing distinct "
-    "theoretical traditions in International Relations and Conflict Transformation."
+# Nordic minimalist theme
+nordic_theme = gr.themes.Base(
+    primary_hue=gr.themes.colors.slate,
+    secondary_hue=gr.themes.colors.stone,
+    neutral_hue=gr.themes.colors.gray,
+    font=gr.themes.GoogleFont("Inter"),
+    font_mono=gr.themes.GoogleFont("JetBrains Mono"),
+).set(
+    body_background_fill="#FAFAF8",
+    body_text_color="#2C2C2C",
+    block_background_fill="#FFFFFF",
+    block_border_width="1px",
+    block_border_color="#E8E6E1",
+    block_shadow="none",
+    block_title_text_color="#2C2C2C",
+    block_label_text_color="#6B6B6B",
+    input_background_fill="#FAFAF8",
+    input_border_color="#D4D2CD",
+    input_border_width="1px",
+    button_primary_background_fill="#2C2C2C",
+    button_primary_text_color="#FAFAF8",
+    button_secondary_background_fill="#FAFAF8",
+    button_secondary_border_color="#D4D2CD",
+    button_secondary_text_color="#2C2C2C",
+    border_color_primary="#E8E6E1",
+    shadow_spread="0px",
 )
+
+CSS = """
+.gradio-container {
+    max-width: 960px !important;
+    margin: 0 auto !important;
+}
+h1 {
+    font-weight: 300 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    font-size: 1.4rem !important;
+    color: #2C2C2C !important;
+    border-bottom: 1px solid #E8E6E1 !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 8px !important;
+}
+.subtitle {
+    color: #8A8A8A !important;
+    font-size: 0.85rem !important;
+    font-weight: 300 !important;
+    letter-spacing: 0.03em !important;
+    margin-bottom: 24px !important;
+}
+.disclaimer {
+    color: #AAAAAA !important;
+    font-size: 0.7rem !important;
+    font-weight: 300 !important;
+    border-top: 1px solid #E8E6E1 !important;
+    padding-top: 12px !important;
+    margin-top: 24px !important;
+}
+.mode-label {
+    color: #8A8A8A !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    font-weight: 400 !important;
+}
+"""
 
 
 def create_consultation(scholar_display_name: str):
@@ -69,35 +130,44 @@ def reset_chat():
 # Build UI
 with gr.Blocks(
     title="The Scholar's Table",
+    theme=nordic_theme,
+    css=CSS,
 ) as demo:
     gr.Markdown("# The Scholar's Table")
     gr.Markdown(
-        "Ten scholars of International Relations and Conflict Transformation, "
-        "each representing a distinct theoretical tradition. Choose one and begin."
+        "Scholars of International Relations and Conflict Transformation. "
+        "Choose a tradition. Begin the dialogue.",
+        elem_classes=["subtitle"],
     )
-    gr.Markdown(DISCLAIMER)
 
     with gr.Row():
-        with gr.Column(scale=1):
+        with gr.Column(scale=1, min_width=220):
             scholar_dropdown = gr.Dropdown(
                 choices=list(scholar_choices.keys()),
-                label="Select a Scholar",
+                label="Scholar",
                 value=None,
             )
-            reset_btn = gr.Button("New Conversation", variant="secondary")
-            gr.Markdown("### Mode: Private Consultation")
-            gr.Markdown("*1:1 conversation with your selected scholar.*")
+            reset_btn = gr.Button("Clear", variant="secondary", size="sm")
+            gr.Markdown("Private consultation", elem_classes=["mode-label"])
 
         with gr.Column(scale=3):
             chatbot = gr.Chatbot(
                 label="Conversation",
-                height=500,
+                height=520,
+                show_label=False,
             )
             msg_input = gr.Textbox(
-                label="Your message",
-                placeholder="Ask a question or present a scenario...",
-                lines=2,
+                label="Message",
+                placeholder="Pose a question or scenario...",
+                lines=1,
+                show_label=False,
             )
+
+    gr.Markdown(
+        "This platform discusses conflict, violence, and political theory "
+        "for educational purposes. Scholars are AI personas.",
+        elem_classes=["disclaimer"],
+    )
 
     # Events
     scholar_dropdown.change(
@@ -116,4 +186,4 @@ with gr.Blocks(
     )
 
 if __name__ == "__main__":
-    demo.launch(theme=gr.themes.Soft())
+    demo.launch()
