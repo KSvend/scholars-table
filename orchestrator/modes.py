@@ -223,17 +223,22 @@ class FreeDebate:
         ):
             assistant_msgs = [m for m in self.conversation if m["role"] == "assistant"]
             if self.judge.check_convergence(assistant_msgs):
-                logger.info("Debate converged — stopping.")
-                self.running = False
-                return None
+                logger.info("Debate convergence detected.")
+                return {
+                    "role": "assistant",
+                    "content": "*The discussion appears to be reaching consensus. You may wish to introduce a new angle, or stop the debate.*",
+                    "convergence": True,
+                }
 
-        # Detect silent scholars (haven't spoken in SILENCE_THRESHOLD turns)
-        threshold = config.FREE_DEBATE_SILENCE_THRESHOLD
-        silent = [
-            sid for sid in self.scholar_ids
-            if self.turn_counts.get(sid, 0) == 0
-            or (self.exchange_count - self.turn_counts.get(sid, 0)) >= threshold
-        ]
+        # Detect silent scholars every 5 turns
+        silent = []
+        if self.exchange_count % config.FREE_DEBATE_CONVERGENCE_CHECK_INTERVAL == 0:
+            threshold = config.FREE_DEBATE_SILENCE_THRESHOLD
+            silent = [
+                sid for sid in self.scholar_ids
+                if self.turn_counts.get(sid, 0) == 0
+                or (self.exchange_count - self.turn_counts.get(sid, 0)) >= threshold
+            ]
         if silent:
             sid = silent[0]
         else:
