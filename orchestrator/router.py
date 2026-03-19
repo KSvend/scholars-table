@@ -20,15 +20,19 @@ class LLMRouter:
         self.fallback_model = config.FREE_FALLBACK_MODEL
         self.client = InferenceClient(token=config.HF_TOKEN or None)
 
-    def generate(self, system_prompt: str, messages: list[dict]) -> str:
+    def generate(self, system_prompt: str, messages: list[dict],
+                 model_override: str | None = None,
+                 max_tokens_override: int | None = None) -> str:
         """Generate a response given a system prompt and message history."""
         full_messages = [{"role": "system", "content": system_prompt}] + messages
+        model = model_override or self.model
+        max_tokens = max_tokens_override or config.MAX_RESPONSE_TOKENS
 
         try:
             response = self.client.chat_completion(
-                model=self.model,
+                model=model,
                 messages=full_messages,
-                max_tokens=config.MAX_RESPONSE_TOKENS,
+                max_tokens=max_tokens,
             )
             return response.choices[0].message.content
         except (ConnectionError, TimeoutError, RuntimeError) as e:
@@ -38,6 +42,6 @@ class LLMRouter:
             response = self.client.chat_completion(
                 model=self.fallback_model,
                 messages=full_messages,
-                max_tokens=config.MAX_RESPONSE_TOKENS,
+                max_tokens=max_tokens,
             )
             return response.choices[0].message.content
