@@ -1,0 +1,56 @@
+# Track open-access sources for each scholar's RAG knowledge base.
+# Phase 1b will ingest these into ChromaDB vector stores.
+
+peacegrave:
+  - title: "Violence, Peace, and Peace Research"
+    author: "Johan Galtung"
+    year: 1969
+    source: "Journal of Peace Research (open access)"
+    status: "to_collect"
+  - title: "Cultural Violence"
+    author: "Johan Galtung"
+    year: 1990
+    source: "Journal of Peace Research (open access)"
+    status: "to_collect"
+  - title: "TRANSCEND Method documentation"
+    author: "TRANSCEND International"
+    source: "transcend.org"
+    status: "to_collect"
+
+ironhelm:
+  - title: "Politics Among Nations (excerpts/summaries)"
+    author: "Hans Morgenthau"
+    year: 1948
+    source: "University open courseware summaries"
+    status: "to_collect"
+  - title: "Theory of International Politics (summaries)"
+    author: "Kenneth Waltz"
+    year: 1979
+    source: "Academic summaries/lectures"
+    status: "to_collect"
+
+silencio:
+  - title: "The Wretched of the Earth (excerpts)"
+    author: "Frantz Fanon"
+    year: 1961
+    source: "Various open-access excerpts"
+    status: "to_collect"
+  - title: "Orientalism (summaries/lectures)"
+    author: "Edward Said"
+    year: 1978
+    source: "Lecture transcripts, academic summaries"
+    status: "to_collect"
+
+flickerstone:
+  - title: "Anarchy is What States Make of It"
+    author: "Alexander Wendt"
+    year: 1992
+    source: "International Organization (open access in some repositories)"
+    status: "to_collect"
+  - title: "Social Theory of International Politics (summaries)"
+    author: "Alexander Wendt"
+    year: 1999
+    source: "Academic summaries/lectures"
+    status: "to_collect"
+
+# Remaining scholars to be populated in Phase 1b
