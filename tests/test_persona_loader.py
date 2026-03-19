@@ -132,3 +132,21 @@ class TestRealPersonas:
         persona = load_persona(os.path.join(config.PERSONAS_DIR, "peacegrave.yaml"))
         assert persona["name"] == "Professor Galthorn Peacegrave"
         assert len(persona["intellectual"]["core_concepts"]) >= 5
+
+    def test_ironhelm_validates(self):
+        import config
+        persona = load_persona(os.path.join(config.PERSONAS_DIR, "ironhelm.yaml"))
+        assert persona["name"] == "Colonel Severus Ironhelm"
+        assert len(persona["intellectual"]["core_concepts"]) >= 5
+
+    def test_silencio_validates(self):
+        import config
+        persona = load_persona(os.path.join(config.PERSONAS_DIR, "silencio.yaml"))
+        assert persona["name"] == "Dr. Amara Silencio"
+        assert len(persona["intellectual"]["core_concepts"]) >= 5
+
+    def test_flickerstone_validates(self):
+        import config
+        persona = load_persona(os.path.join(config.PERSONAS_DIR, "flickerstone.yaml"))
+        assert persona["name"] == "Dr. Mirabel Flickerstone"
+        assert len(persona["intellectual"]["core_concepts"]) >= 5
