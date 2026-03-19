@@ -112,6 +112,12 @@ Set an initial topic or question, select participating scholars, and configure a
 4. Every 5 turns, the orchestrator checks if any scholar has been silent for 3+ turns and injects: "[Scholar], you've been quiet — what does [their tradition] make of this?"
 5. Termination: hard exchange limit, user stop, or convergence detection (if the last 3 responses introduce no new concepts, the orchestrator prompts: "We seem to be reaching consensus/stalemate — shall we continue?")
 
+### LLM-as-Judge Implementation
+- The judge calls use a **lighter model** (Llama 3.1 8B or equivalent) than the scholar response calls, to minimize latency and rate-limit impact
+- Judge prompts are short and structured (return JSON), keeping token usage low (~200 tokens in, ~100 out)
+- **Convergence detection:** the judge receives the last 3 responses and returns a list of distinct concepts introduced. If the union across 3 responses contains fewer than 2 new concepts not already present in the conversation summary, convergence is flagged
+- In free tier, judge calls count against the same rate limit — the `API_CALL_DELAY_SECONDS` applies to all calls including judge calls
+
 ### Context Window Management
 
 - **Persona prompts:** layered injection. Core identity + intellectual layer always included (~800 tokens). Relational and rhetorical layers added only in multi-scholar modes (~400 tokens extra). Full bible used only in Mode 1.
