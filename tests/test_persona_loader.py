@@ -124,3 +124,11 @@ class TestLoadAllPersonas:
         assert len(personas) == 2
         assert "scholar_a" in personas
         assert "scholar_b" in personas
+
+
+class TestRealPersonas:
+    def test_peacegrave_validates(self):
+        import config
+        persona = load_persona(os.path.join(config.PERSONAS_DIR, "peacegrave.yaml"))
+        assert persona["name"] == "Professor Galthorn Peacegrave"
+        assert len(persona["intellectual"]["core_concepts"]) >= 5
