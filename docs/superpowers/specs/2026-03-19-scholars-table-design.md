@@ -92,6 +92,104 @@ Set an initial topic or question, select participating scholars, and configure a
 - User can interject anytime to steer, or just observe
 - Conversation stops at the configured limit or when ended by user
 
+## Orchestrator Logic
+
+### Turn Selection Algorithm
+
+**Mode 2 (Panel Discussion):**
+1. Initial round: all selected scholars respond in fixed order (by scholar number)
+2. Rebuttal round: an LLM-as-judge call analyzes all initial responses and returns a list of `(responder, target, tension_summary)` tuples — identifying the strongest disagreements
+3. Rebuttals are generated in order of tension score (highest disagreement first)
+4. User interjections queue after the current response completes; the next speaker addresses the interjection before continuing the debate thread
+
+**Mode 3 (Free Debate):**
+1. Opening round: each scholar gives an initial take (round-robin by scholar number)
+2. Subsequent turns: an LLM-as-judge call selects the next speaker based on:
+   - **Relevance score** — which scholar's tradition is most provoked by the last response?
+   - **Turn deficit** — scholars who have spoken least get a priority boost
+   - **Relationship heat** — known disagreement axes (from `relationships.py`) increase selection probability
+3. The selected scholar receives: the full conversation so far + their persona + a meta-prompt like "Respond to the points that most engage your theoretical framework"
+4. Every 5 turns, the orchestrator checks if any scholar has been silent for 3+ turns and injects: "[Scholar], you've been quiet — what does [their tradition] make of this?"
+5. Termination: hard exchange limit, user stop, or convergence detection (if the last 3 responses introduce no new concepts, the orchestrator prompts: "We seem to be reaching consensus/stalemate — shall we continue?")
+
+### Context Window Management
+
+- **Persona prompts:** layered injection. Core identity + intellectual layer always included (~800 tokens). Relational and rhetorical layers added only in multi-scholar modes (~400 tokens extra). Full bible used only in Mode 1.
+- **Conversation history:** sliding window with summarization. After 10 exchanges, earlier turns are summarized by an LLM call into a ~200 token digest. The last 5 exchanges are always included verbatim.
+- **RAG chunks:** top-3 retrieved passages per response (~300-500 tokens total). Retrieved based on the current conversation turn, not the original question.
+- **Budget per call:** ~4,000 tokens system/context, leaving maximum generation space for the model.
+
+### User Interjection Handling
+
+When a user sends a message during Modes 2 or 3:
+1. Current generation completes (no mid-stream cancellation)
+2. User message is inserted into the conversation history
+3. The orchestrator's next speaker selection treats the user message as the latest turn to respond to
+4. All scholars see the interjection in their context going forward
+
+## Relationship Data Structure
+
+Each scholar's persona file includes a `relationships` block:
+
+```yaml
+relationships:
+  ironhelm:
+    stance: "antagonist"
+    dynamic: "Respects his strategic clarity but considers his framework morally bankrupt"
+    triggers: ["security dilemma", "national interest", "balance of power"]
+    common_ground: ["Both take conflict seriously; neither is naive"]
+  roothollow:
+    stance: "ally"
+    dynamic: "Shares commitment to transformation but sometimes finds her too optimistic about local capacity"
+    triggers: ["local agency", "hybrid peace"]
+```
+
+The orchestrator reads `triggers` to boost rebuttal probability when those concepts appear. The `dynamic` text is injected into the scholar's context when responding to that specific scholar.
+
+## RAG Knowledge Base
+
+### Corpus Strategy
+- **Sources:** Open-access academic papers, working papers, book chapter summaries, UN/policy documents, author interviews/lectures (transcribed). No copyrighted full texts.
+- **Target:** 10-20 quality sources per scholar (prioritizing foundational works available in open access)
+- **Format:** Chunked passages (~500 tokens each) with metadata: author, year, key concepts, source URL
+- **Chunking:** 500-token chunks with 50-token overlap, tagged with scholar tradition and concept keywords
+- **Retrieval:** Cosine similarity with MMR (Maximal Marginal Relevance) for diversity, top-3 chunks per query
+- **Embedding model:** `BAAI/bge-large-en-v1.5`
+- **Fallback:** If RAG retrieval returns low-confidence results (similarity < 0.6), the scholar responds from system prompt knowledge only, without forced citation
+
+### Corpus Curation (parallel to Phase 1)
+Begin collecting open-access texts immediately. Priority sources:
+- JSTOR open-access, Google Scholar, SSRN, university repositories
+- PRIO (Peace Research Institute Oslo) working papers
+- Journal of Peace Research open-access archive
+- UN peacebuilding documents, SIPRI reports
+- Author lectures/talks (YouTube transcripts)
+
+## Fine-tuning Strategy (Peacegrave)
+
+### Approach
+- **Method:** LoRA fine-tuning (parameter-efficient, lower cost)
+- **Base model:** Llama 3.1 8B Instruct
+- **Training data:** Instruction-tuning pairs generated from Galtung's open-access works — each pair frames a conflict scenario and the expected Galtung-style analysis (conflict triangle mapping, structural violence identification, TRANSCEND method application)
+- **Data volume target:** 500-1,000 instruction pairs curated from ~20 source texts
+- **Training:** HF training infrastructure (Jobs or AutoTrain)
+- **Evaluation:** Human evaluation rubric comparing fine-tuned vs prompt-only responses on 50 test scenarios, scored on: theoretical accuracy, depth of analysis, consistency with Galtung's methodology, and persona voice
+- **Serving:** HF Inference Endpoints (dedicated, ~$0.60/hr on-demand or ~$50-100/mo reserved). Only active when users select Peacegrave — can be cold-started.
+
+### Tier Behavior
+- **Phases 1-2:** Peacegrave uses prompt+RAG like all other scholars (no fine-tuned model yet)
+- **Phase 3+, free tier:** Fine-tuned model + RAG
+- **Phase 3+, premium tier:** User choice — fine-tuned model or Claude/OpenAI with Peacegrave persona prompt (some users may prefer the stronger base model)
+
+## Error Handling
+
+- **API failures:** Retry once after 2s. On second failure, show "Scholar [name] is momentarily unavailable" and skip to next scholar in multi-scholar modes. In Mode 1, show error and let user retry.
+- **Rate limits (free tier):** Queue requests with a visible progress indicator ("Consulting Professor Ledgerbone... 3 of 7 scholars"). Add 1-2s delay between calls to stay within limits. If rate-limited, fall back to a smaller model (e.g., Llama 3.1 8B).
+- **Character breaking:** No automated enforcement. Persona quality is handled by prompt engineering. If quality degrades, it's a signal to improve the persona file.
+- **Content moderation:** No additional filtering beyond the LLM provider's built-in safety. Academic discussion of violence, colonialism, and conflict is legitimate and expected. A brief disclaimer on the UI: "This platform discusses conflict, violence, and political theory for educational purposes."
+- **Degenerate loops (Mode 3):** Convergence detection at every 5 turns (see Orchestrator Logic). If 3 consecutive responses introduce no new concepts, the orchestrator intervenes.
+- **Concurrent users:** HF Spaces free tier handles this natively with request queuing. Premium tier uses API concurrency limits from the provider.
+
 ## Architecture
 
 ```
@@ -104,22 +202,67 @@ User → Gradio UI → Conversation Orchestrator → LLM Router → [HF Inferenc
 ```
 
 ### Components
-- **Scholar Engine** — manages persona prompts, RAG retrieval, and the fine-tuned Peacegrave model
-- **Conversation Orchestrator** — handles the three interaction modes, turn management, participation balance
-- **LLM Router** — pluggable backend switching between free and premium tiers
-- **Knowledge Store** — per-scholar RAG corpus of key theoretical texts (15-30 key works per scholar)
-- **Gradio UI** — mode selector, scholar picker, chat interface, debate viewer
+- **Scholar Engine** — manages persona prompts, RAG retrieval, relationship injection, and the fine-tuned Peacegrave model
+- **Conversation Orchestrator** — handles the three interaction modes, turn management, participation balance, convergence detection
+- **LLM Router** — pluggable backend switching between free and premium tiers; user selects backend per session; one backend for all scholars in a session
+- **Knowledge Store** — per-scholar RAG corpus of open-access theoretical texts
+- **Gradio UI** — mode selector, scholar picker, chat interface, debate viewer, progress indicators
 
 ## Technical Stack
 
 - **Frontend:** Gradio (Python)
 - **Hosting:** Hugging Face Spaces
-- **LLM — Free tier:** HF Inference API (Llama 3.3 70B or Mixtral 8x22B)
-- **LLM — Premium tier:** Claude API and/or OpenAI API (switchable per session)
-- **Fine-tuned model:** Peacegrave — fine-tuned on open-source base (e.g., Llama 3.1 8B) via HF training, served via HF Inference Endpoints
-- **RAG:** FAISS or ChromaDB vector stores, HF embedding model (e.g., bge-large)
-- **Orchestrator:** Python
-- **Persona files:** Markdown/YAML, version controlled
+- **LLM — Free tier:** HF Inference API (Llama 3.3 70B primary, Llama 3.1 8B fallback)
+- **LLM — Premium tier:** Claude API or OpenAI API (user selects per session)
+- **Fine-tuned model:** Peacegrave — LoRA fine-tuned Llama 3.1 8B, served via HF Inference Endpoints (on-demand)
+- **RAG:** ChromaDB vector stores, `BAAI/bge-large-en-v1.5` embeddings, MMR retrieval
+- **Orchestrator:** Python with LLM-as-judge for turn selection and rebuttal routing
+- **Persona files:** YAML with defined schema, version controlled
+
+## Persona File Schema
+
+```yaml
+name: "Professor Galthorn Peacegrave"
+school: "Structural Peace & Conflict Transformation"
+title: "Professor"
+
+personality:
+  background: "..." # Career arc, formative experiences
+  emotional_patterns:
+    passionate_about: ["..."]
+    frustrated_by: ["..."]
+    curious_about: ["..."]
+  humor_style: "..."
+  when_wrong: "..." # How they handle being incorrect
+  when_challenged: "..." # Response to pushback
+
+intellectual:
+  core_concepts: ["..."] # 5-8 key concepts they reason through
+  reasoning_pattern: "..." # Step-by-step description of how they analyze
+  blind_spots: ["..."] # What they tend to overlook
+  internal_tensions: ["..."] # Debates within their own tradition
+  changed_mind_about: ["..."] # Evolution over career
+  borrowed_concepts: # From other traditions
+    - concept: "..."
+      from_tradition: "..."
+      attitude: "reluctant|open|critical"
+
+relationships:
+  scholar_id:
+    stance: "antagonist|ally|complex|respectful_rival"
+    dynamic: "..."
+    triggers: ["..."] # Concepts that activate this relationship
+    common_ground: ["..."]
+
+rhetorical:
+  sentence_style: "..."
+  opening_move: "..." # How they typically start a response
+  argument_method: "deductive|inductive|analogical|narrative|socratic"
+  signature_phrases: ["..."]
+  citation_style: "..." # How they reference other works
+
+key_thinkers: ["..."] # Real scholars behind this tradition (for RAG)
+```
 
 ## Project Structure
 
@@ -128,45 +271,89 @@ scholars-table/
 ├── app.py                    # Gradio UI
 ├── orchestrator/
 │   ├── modes.py              # Private, Panel, Free Debate logic
-│   ├── turn_manager.py       # Balance, rebuttal routing
+│   ├── turn_manager.py       # Balance, rebuttal routing, convergence detection
+│   ├── judge.py              # LLM-as-judge for speaker selection and tension analysis
+│   ├── context.py            # Context window management, summarization
 │   └── router.py             # LLM backend switching
 ├── scholars/
 │   ├── personas/             # 10 scholar persona files (YAML)
 │   ├── engine.py             # Prompt assembly + RAG retrieval
-│   └── relationships.py      # Cross-scholar dynamics
+│   └── relationships.py      # Cross-scholar dynamics, trigger matching
 ├── knowledge/
-│   ├── corpora/              # Per-scholar source texts
-│   ├── embeddings/           # Vector stores
-│   └── ingest.py             # Text processing + embedding
+│   ├── corpora/              # Per-scholar source texts (open-access)
+│   ├── embeddings/           # ChromaDB vector stores
+│   └── ingest.py             # Text chunking, embedding, metadata tagging
 ├── training/
-│   └── peacegrave/           # Fine-tuning scripts + data
-├── config.py                 # API keys, model selection, defaults
-└── requirements.txt
+│   └── peacegrave/           # LoRA fine-tuning scripts + instruction pairs
+├── config.py                 # API keys, model selection, tier defaults, RAG params
+├── requirements.txt
+└── tests/
+    ├── test_personas.py      # Persona loading and schema validation
+    ├── test_orchestrator.py   # Turn management, mode logic
+    └── test_rag.py           # Retrieval quality checks
+```
+
+## Configuration
+
+```python
+# config.py defaults
+DEFAULT_TIER = "free"
+FREE_MODEL = "meta-llama/Llama-3.3-70B-Instruct"
+FREE_FALLBACK_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
+PREMIUM_PROVIDERS = ["claude", "openai"]
+DEFAULT_PREMIUM_MODEL_CLAUDE = "claude-sonnet-4-6"
+DEFAULT_PREMIUM_MODEL_OPENAI = "gpt-4o"
+
+RAG_TOP_K = 3
+RAG_SIMILARITY_THRESHOLD = 0.6
+RAG_CHUNK_SIZE = 500
+RAG_CHUNK_OVERLAP = 50
+EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"
+
+FREE_DEBATE_MAX_EXCHANGES = 20
+FREE_DEBATE_SILENCE_THRESHOLD = 3  # turns before nudge
+FREE_DEBATE_CONVERGENCE_CHECK_INTERVAL = 5
+API_RETRY_DELAY_SECONDS = 2
+API_CALL_DELAY_SECONDS = 1.5  # between sequential calls (rate limit)
 ```
 
 ## Deployment Phases
 
-### Phase 1 — Foundation (MVP)
+### Phase 1a — Scaffolding & First Scholars
 - Project repo on GitHub
-- 10 scholar persona files with full character bibles
-- System prompt + RAG pipeline working for all scholars
-- Mode 1 (Private Consultation) functional
+- 3-4 scholar persona files (Peacegrave, Ironhelm, Silencio, Flickerstone)
+- System-prompt-only Mode 1 (no RAG yet)
 - Free tier only (HF Inference API)
 - Deployed on HF Spaces
+- Begin RAG corpus curation in parallel
+
+### Phase 1b — Full Roster & RAG
+- Remaining 6-7 scholar persona files
+- RAG pipeline: corpus ingestion, embedding, retrieval
+- All 10 scholars with RAG-augmented responses in Mode 1
+- Conversation history with sliding window + summarization
 
 ### Phase 2 — Discussion Modes
-- Mode 2 (Panel Discussion) with rebuttal logic
-- Mode 3 (Free Debate) with orchestrator balancing
+- Mode 2 (Panel Discussion) with LLM-as-judge rebuttal routing
+- Mode 3 (Free Debate) with orchestrator balancing and convergence detection
 - Premium tier toggle (Claude/OpenAI API)
+- Progress indicators and latency mitigation for multi-scholar calls
 
 ### Phase 3 — Peacegrave Fine-tuning
-- Curate Galtung corpus (key texts, TRANSCEND method documentation)
-- Fine-tune on HF training infrastructure
-- Swap Peacegrave's backend from prompt+RAG to fine-tuned model + RAG
-- Evaluate against prompt-only version to confirm improvement
+- Curate instruction-tuning pairs from Galtung open-access corpus (~500-1,000 pairs)
+- LoRA fine-tune on HF training infrastructure
+- Swap Peacegrave's free-tier backend to fine-tuned model + RAG
+- Evaluate against prompt-only version using human rubric (50 test scenarios)
 
 ### Phase 4 — Polish
 - Conversation export (save debates as documents)
 - Scholar comparison view (side-by-side analysis of different framings)
-- Session memory (scholars remember earlier points in long debates)
+- Session memory architecture (conversation store + retrieval for long debates)
 - Public sharing of interesting debates
+
+## Testing Strategy
+
+- **Persona consistency:** Automated checks that each persona file validates against the YAML schema. Manual spot-checks on response quality during development.
+- **RAG retrieval quality:** Recall metrics on a curated set of test queries per scholar — does the retriever surface the right passages?
+- **Orchestrator logic:** Unit tests for turn selection, participation balance, and convergence detection using mock conversation histories.
+- **End-to-end:** Manual evaluation sessions where a domain expert (the project owner) runs scenarios through all three modes and evaluates scholarly quality, persona distinctiveness, and debate dynamics.
