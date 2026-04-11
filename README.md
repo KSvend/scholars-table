@@ -16,8 +16,19 @@ A multi-agent discussion platform where AI scholars representing distinct tradit
 in International Relations and Conflict Transformation debate, analyze, and respond
 to your questions.
 
-Currently in Mode 1 (Private Consultation) with 4 scholars:
+## Scholars
+
 - Professor Galthorn Peacegrave (Structural Peace & Conflict Transformation)
 - Colonel Severus Ironhelm (Classical Realism)
 - Dr. Amara Silencio (Post-Colonial / Decolonial)
 - Dr. Mirabel Flickerstone (Constructivism)
+
+## Discussion Modes
+
+- **Private Consultation** — One-on-one dialogue with a single scholar.
+- **Panel Discussion** — Multiple scholars respond to your question, then rebut
+  each other. Rebuttal pairs are chosen by an LLM-as-judge that scores tensions
+  between the initial responses.
+- **Free Debate** — Organic multi-scholar debate guided by an orchestrator that
+  selects the next speaker, nudges silent voices, and detects convergence so the
+  user can decide when to wrap up.

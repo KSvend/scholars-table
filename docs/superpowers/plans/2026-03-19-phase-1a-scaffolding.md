@@ -1,6 +1,6 @@
 # Phase 1a: Scaffolding & First Scholars — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Get the first 4 scholars (Peacegrave, Ironhelm, Silencio, Flickerstone) responding in Mode 1 (Private Consultation) via HF Inference API, deployed on Hugging Face Spaces.
 
@@ -44,7 +44,7 @@
 - Create: `config.py`
 - Create: `tests/conftest.py`
 
-- [ ] **Step 1: Create requirements.txt**
+- [x] **Step 1: Create requirements.txt**
 
 ```
 gradio>=4.44.0
@@ -53,7 +53,7 @@ pyyaml>=6.0
 pytest>=8.0.0
 ```
 
-- [ ] **Step 2: Create .gitignore**
+- [x] **Step 2: Create .gitignore**
 
 ```
 __pycache__/
@@ -68,7 +68,7 @@ venv/
 knowledge/embeddings/
 ```
 
-- [ ] **Step 3: Create config.py**
+- [x] **Step 3: Create config.py**
 
 ```python
 import os
@@ -96,7 +96,7 @@ SCHOLAR_IDS = [
 ]
 ```
 
-- [ ] **Step 4: Create empty test conftest**
+- [x] **Step 4: Create empty test conftest**
 
 ```python
 # tests/conftest.py
@@ -107,14 +107,14 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 ```
 
-- [ ] **Step 5: Create directories and package init files**
+- [x] **Step 5: Create directories and package init files**
 
 ```bash
 mkdir -p scholars/personas orchestrator tests knowledge/corpora training/peacegrave
 touch scholars/__init__.py orchestrator/__init__.py tests/__init__.py
 ```
 
-- [ ] **Step 6: Set up local environment**
+- [x] **Step 6: Set up local environment**
 
 Create a `.env` file (already in `.gitignore`):
 ```bash
@@ -124,7 +124,7 @@ echo "HF_TOKEN=hf_your_token_here" > .env
 For local development, load it in your shell: `export $(cat .env | xargs)`
 On HF Spaces, add `HF_TOKEN` as a secret in the Space settings.
 
-- [ ] **Step 7: Verify structure and commit**
+- [x] **Step 7: Verify structure and commit**
 
 Run: `find . -type f | head -20` to verify file layout.
 
@@ -141,7 +141,7 @@ git commit -m "feat: project scaffolding — config, deps, test setup"
 - Create: `scholars/persona_loader.py`
 - Create: `tests/test_persona_loader.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_persona_loader.py
@@ -272,12 +272,12 @@ class TestLoadAllPersonas:
         assert "scholar_b" in personas
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_persona_loader.py -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'scholars.persona_loader'`
 
-- [ ] **Step 3: Implement persona_loader.py**
+- [x] **Step 3: Implement persona_loader.py**
 
 ```python
 # scholars/persona_loader.py
@@ -345,12 +345,12 @@ def load_all_personas(directory: str) -> dict[str, dict]:
     return personas
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_persona_loader.py -v`
 Expected: All PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scholars/persona_loader.py tests/test_persona_loader.py
@@ -364,7 +364,7 @@ git commit -m "feat: persona loader with YAML schema validation"
 **Files:**
 - Create: `scholars/personas/peacegrave.yaml`
 
-- [ ] **Step 1: Write the persona validation test**
+- [x] **Step 1: Write the persona validation test**
 
 Add to `tests/test_persona_loader.py`:
 
@@ -377,12 +377,12 @@ class TestRealPersonas:
         assert len(persona["intellectual"]["core_concepts"]) >= 5
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_persona_loader.py::TestRealPersonas -v`
 Expected: FAIL — FileNotFoundError
 
-- [ ] **Step 3: Create peacegrave.yaml**
+- [x] **Step 3: Create peacegrave.yaml**
 
 ```yaml
 name: "Professor Galthorn Peacegrave"
@@ -589,12 +589,12 @@ key_thinkers:
   - "Oliver Ramsbotham"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_persona_loader.py::TestRealPersonas -v`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scholars/personas/peacegrave.yaml tests/test_persona_loader.py
@@ -610,7 +610,7 @@ git commit -m "feat: add Professor Galthorn Peacegrave persona"
 - Create: `scholars/personas/silencio.yaml`
 - Create: `scholars/personas/flickerstone.yaml`
 
-- [ ] **Step 1: Add validation tests for all three**
+- [x] **Step 1: Add validation tests for all three**
 
 Add to `tests/test_persona_loader.py` `TestRealPersonas` class:
 
@@ -634,12 +634,12 @@ Add to `tests/test_persona_loader.py` `TestRealPersonas` class:
         assert len(persona["intellectual"]["core_concepts"]) >= 5
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_persona_loader.py::TestRealPersonas -v`
 Expected: 3 FAIL (FileNotFoundError for each)
 
-- [ ] **Step 3: Create ironhelm.yaml**
+- [x] **Step 3: Create ironhelm.yaml**
 
 Write `scholars/personas/ironhelm.yaml` with full character bible following the same structure as Peacegrave. Key traits:
 - **Background:** Career military officer turned academic after a disillusioning peacekeeping deployment. Studied under a Morgenthau disciple. Carries the weight of having seen idealistic interventions fail.
@@ -651,7 +651,7 @@ Write `scholars/personas/ironhelm.yaml` with full character bible following the 
 - **Blind spots:** Undervalues local agency, can't see past state-level analysis, dismisses cultural/ideational factors
 - **Key thinkers:** Hans Morgenthau, Kenneth Waltz, E.H. Carr, Thucydides, John Mearsheimer, Reinhold Niebuhr, Raymond Aron, Robert Gilpin
 
-- [ ] **Step 4: Create silencio.yaml**
+- [x] **Step 4: Create silencio.yaml**
 
 Write `scholars/personas/silencio.yaml`. Key traits:
 - **Background:** Grew up in a former colony, studied in the metropole, felt the epistemic violence firsthand. Returned to build decolonial research programs. Her work maps how colonial knowledge systems persist in "post-colonial" institutions.
@@ -663,7 +663,7 @@ Write `scholars/personas/silencio.yaml`. Key traits:
 - **Blind spots:** Can prioritize deconstruction over construction, sometimes essentializes "the West"
 - **Key thinkers:** Frantz Fanon, Edward Said, Gayatri Spivak, Achille Mbembe, Walter Mignolo, Aimé Césaire, Ngũgĩ wa Thiong'o, Siba Grovogui
 
-- [ ] **Step 5: Create flickerstone.yaml**
+- [x] **Step 5: Create flickerstone.yaml**
 
 Write `scholars/personas/flickerstone.yaml`. Key traits:
 - **Background:** Originally trained in linguistics, came to IR through a fascination with how "threats" are constructed through language. Has done ethnographic work on norm diffusion in Southeast Asia. Known for asking the question that unravels everyone's assumptions.
@@ -675,12 +675,12 @@ Write `scholars/personas/flickerstone.yaml`. Key traits:
 - **Blind spots:** Can be too abstract, sometimes deconstructs without offering practical alternatives
 - **Key thinkers:** Alexander Wendt, Peter Katzenstein, Martha Finnemore, Kathryn Sikkink, Friedrich Kratochwil, Nicholas Onuf, Emanuel Adler, Ann Towns
 
-- [ ] **Step 6: Run all persona tests**
+- [x] **Step 6: Run all persona tests**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_persona_loader.py::TestRealPersonas -v`
 Expected: All 4 PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scholars/personas/ironhelm.yaml scholars/personas/silencio.yaml scholars/personas/flickerstone.yaml tests/test_persona_loader.py
@@ -695,7 +695,7 @@ git commit -m "feat: add Ironhelm, Silencio, Flickerstone personas"
 - Create: `orchestrator/router.py`
 - Create: `tests/test_router.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_router.py
@@ -753,12 +753,12 @@ class TestLLMRouter:
         assert second_call_kwargs[1]["model"] == "meta-llama/Llama-3.1-8B-Instruct"
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_router.py -v`
 Expected: FAIL — ImportError
 
-- [ ] **Step 3: Implement router.py**
+- [x] **Step 3: Implement router.py**
 
 ```python
 # orchestrator/router.py
@@ -807,12 +807,12 @@ class LLMRouter:
             return response.choices[0].message.content
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_router.py -v`
 Expected: All PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add orchestrator/router.py tests/test_router.py
@@ -827,7 +827,7 @@ git commit -m "feat: LLM router with HF Inference API and fallback"
 - Create: `scholars/engine.py`
 - Create: `tests/test_engine.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_engine.py
@@ -879,12 +879,12 @@ class TestScholarEngine:
         assert "power-maximizer" in prompt.lower() or "morally bankrupt" in prompt.lower() or "ironhelm" in prompt.lower()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_engine.py -v`
 Expected: FAIL — ImportError
 
-- [ ] **Step 3: Implement engine.py**
+- [x] **Step 3: Implement engine.py**
 
 ```python
 # scholars/engine.py
@@ -995,12 +995,12 @@ class ScholarEngine:
         return "\n".join(parts)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_engine.py -v`
 Expected: All PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scholars/engine.py tests/test_engine.py
@@ -1015,7 +1015,7 @@ git commit -m "feat: scholar engine with layered prompt assembly"
 - Create: `orchestrator/modes.py`
 - Create: `tests/test_modes.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_modes.py
@@ -1100,12 +1100,12 @@ class TestPrivateConsultation:
         mock_engine.build_system_prompt.assert_called_with("peacegrave", mode="private")
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_modes.py -v`
 Expected: FAIL — ImportError
 
-- [ ] **Step 3: Implement modes.py**
+- [x] **Step 3: Implement modes.py**
 
 ```python
 # orchestrator/modes.py
@@ -1138,12 +1138,12 @@ class PrivateConsultation:
         self.history = []
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_modes.py -v`
 Expected: All PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add orchestrator/modes.py tests/test_modes.py
@@ -1157,7 +1157,7 @@ git commit -m "feat: Mode 1 private consultation with conversation history"
 **Files:**
 - Create: `app.py`
 
-- [ ] **Step 1: Write a smoke test**
+- [x] **Step 1: Write a smoke test**
 
 Add `tests/test_app.py`:
 
@@ -1177,12 +1177,12 @@ class TestAppImport:
         assert len(app.scholar_choices) >= 4
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_app.py -v`
 Expected: FAIL — ImportError
 
-- [ ] **Step 3: Implement app.py**
+- [x] **Step 3: Implement app.py**
 
 ```python
 # app.py
@@ -1309,12 +1309,12 @@ if __name__ == "__main__":
     demo.launch()
 ```
 
-- [ ] **Step 4: Run smoke test**
+- [x] **Step 4: Run smoke test**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_app.py -v`
 Expected: PASS
 
-- [ ] **Step 5: Manual test — launch locally**
+- [x] **Step 5: Manual test — launch locally**
 
 Run: `cd /Users/kmini/Github/scholars-table && python app.py`
 - Verify the UI loads at `http://localhost:7860`
@@ -1323,7 +1323,7 @@ Run: `cd /Users/kmini/Github/scholars-table && python app.py`
 - Verify a response comes back in character
 - Stop the server
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app.py tests/test_app.py
@@ -1337,7 +1337,7 @@ git commit -m "feat: Gradio UI with scholar selection and Mode 1 chat"
 **Files:**
 - Create: `README.md` (HF Spaces requires this with YAML frontmatter)
 
-- [ ] **Step 1: Create HF Spaces README**
+- [x] **Step 1: Create HF Spaces README**
 
 ```markdown
 ---
@@ -1365,7 +1365,7 @@ Currently in Mode 1 (Private Consultation) with 4 scholars:
 - Dr. Mirabel Flickerstone (Constructivism)
 ```
 
-- [ ] **Step 2: Create GitHub repo and push**
+- [x] **Step 2: Create GitHub repo and push**
 
 ```bash
 cd /Users/kmini/Github/scholars-table
@@ -1378,7 +1378,7 @@ Then create the GitHub repo:
 gh repo create scholars-table --public --source=. --push
 ```
 
-- [ ] **Step 3: Create HF Space and link**
+- [x] **Step 3: Create HF Space and link**
 
 Using HF CLI or web UI:
 1. Create a new Space at huggingface.co/spaces (Gradio SDK)
@@ -1394,14 +1394,14 @@ git remote add hf https://huggingface.co/spaces/KSvendsen/scholars-table
 git push hf master:main
 ```
 
-- [ ] **Step 4: Verify deployment**
+- [x] **Step 4: Verify deployment**
 
 - Visit the HF Space URL
 - Select a scholar
 - Send a test message
 - Verify response quality
 
-- [ ] **Step 5: Commit any deployment fixes**
+- [x] **Step 5: Commit any deployment fixes**
 
 ```bash
 git add -A
@@ -1418,13 +1418,13 @@ git commit -m "fix: deployment adjustments for HF Spaces"
 
 This task runs in parallel with development. It sets up the structure and initial source list for Phase 1b's RAG pipeline.
 
-- [ ] **Step 1: Create corpus directory structure**
+- [x] **Step 1: Create corpus directory structure**
 
 ```bash
 mkdir -p knowledge/corpora/{peacegrave,ironhelm,silencio,flickerstone,pactsworth,dreadhorn,veilsworth,rulebury,roothollow,ledgerbone}
 ```
 
-- [ ] **Step 2: Create sources tracking file**
+- [x] **Step 2: Create sources tracking file**
 
 ```yaml
 # knowledge/corpora/sources.yaml
@@ -1486,7 +1486,7 @@ flickerstone:
 # Remaining scholars to be populated in Phase 1b
 ```
 
-- [ ] **Step 3: Create corpus README**
+- [x] **Step 3: Create corpus README**
 
 ```markdown
 # RAG Corpus
@@ -1508,7 +1508,7 @@ to a scholar and will contain open-access texts, summaries, and transcripts.
 - YouTube lecture transcripts
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add knowledge/corpora/
@@ -1519,12 +1519,12 @@ git commit -m "feat: RAG corpus structure and initial source tracking"
 
 ### Task 11: Run Full Test Suite and Final Verification
 
-- [ ] **Step 1: Run all tests**
+- [x] **Step 1: Run all tests**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/ -v`
 Expected: All PASS
 
-- [ ] **Step 2: Verify all 4 scholars load**
+- [x] **Step 2: Verify all 4 scholars load**
 
 ```bash
 cd /Users/kmini/Github/scholars-table && python -c "
@@ -1538,7 +1538,7 @@ for sid, name in e.get_scholar_names().items():
 ```
 Expected: 4 scholars listed with reasonable prompt lengths
 
-- [ ] **Step 3: Final commit and push**
+- [x] **Step 3: Final commit and push**
 
 ```bash
 git push origin master

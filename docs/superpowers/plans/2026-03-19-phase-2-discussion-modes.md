@@ -1,6 +1,6 @@
 # Phase 2: Panel Discussion & Free Debate — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add Mode 2 (Panel Discussion with LLM-as-judge rebuttals) and Mode 3 (Free Debate with orchestrator balancing and convergence detection), plus update the Gradio UI with mode selection.
 
@@ -31,7 +31,7 @@
 **Files:**
 - Modify: `config.py`
 
-- [ ] **Step 1: Add Phase 2 config constants**
+- [x] **Step 1: Add Phase 2 config constants**
 
 Add to `config.py`:
 
@@ -47,7 +47,7 @@ FREE_DEBATE_CONVERGENCE_CHECK_INTERVAL = 5
 PANEL_MAX_REBUTTALS = 4  # max rebuttal pairs per round
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add config.py
@@ -62,7 +62,7 @@ git commit -m "feat: add Phase 2 config — judge model, debate settings"
 - Create: `orchestrator/judge.py`
 - Create: `tests/test_judge.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_judge.py
@@ -169,12 +169,12 @@ class TestCheckConvergence:
         assert result is False
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_judge.py -v`
 Expected: FAIL — ImportError
 
-- [ ] **Step 3: Implement judge.py**
+- [x] **Step 3: Implement judge.py**
 
 ```python
 # orchestrator/judge.py
@@ -291,7 +291,7 @@ class Judge:
         return False  # Default to not converged on error
 ```
 
-- [ ] **Step 4: Add model_override and max_tokens_override to router**
+- [x] **Step 4: Add model_override and max_tokens_override to router**
 
 The judge needs to use a different model than the scholars. Modify `orchestrator/router.py` `generate` method signature:
 
@@ -303,12 +303,12 @@ def generate(self, system_prompt: str, messages: list[dict],
 
 Use `model_override or self.model` and `max_tokens_override or config.MAX_RESPONSE_TOKENS` in the method body. Apply the same pattern in the fallback path.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_judge.py -v`
 Expected: All PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add orchestrator/judge.py orchestrator/router.py tests/test_judge.py
@@ -323,7 +323,7 @@ git commit -m "feat: LLM-as-judge for tension analysis, speaker selection, conve
 - Modify: `orchestrator/modes.py`
 - Modify: `tests/test_modes.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/test_modes.py`:
 
@@ -416,12 +416,12 @@ class TestPanelDiscussion:
         assert panel.phase == "waiting"
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_modes.py::TestPanelDiscussion -v`
 Expected: FAIL — ImportError
 
-- [ ] **Step 3: Implement PanelDiscussion**
+- [x] **Step 3: Implement PanelDiscussion**
 
 Add to `orchestrator/modes.py`:
 
@@ -557,12 +557,12 @@ class PanelDiscussion:
         self.question = ""
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_modes.py -v`
 Expected: All PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add orchestrator/modes.py tests/test_modes.py
@@ -577,7 +577,7 @@ git commit -m "feat: Mode 2 panel discussion with initial round and rebuttals"
 - Modify: `orchestrator/modes.py`
 - Modify: `tests/test_modes.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/test_modes.py`:
 
@@ -698,12 +698,12 @@ class TestFreeDebate:
         assert debate.running is False
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_modes.py::TestFreeDebate -v`
 Expected: FAIL — ImportError
 
-- [ ] **Step 3: Implement FreeDebate**
+- [x] **Step 3: Implement FreeDebate**
 
 Add to `orchestrator/modes.py`:
 
@@ -822,12 +822,12 @@ class FreeDebate:
         self.running = False
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/test_modes.py -v`
 Expected: All PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add orchestrator/modes.py tests/test_modes.py
@@ -842,7 +842,7 @@ git commit -m "feat: Mode 3 free debate with speaker selection and convergence"
 - Modify: `app.py`
 - Modify: `tests/test_app.py`
 
-- [ ] **Step 1: Add smoke tests**
+- [x] **Step 1: Add smoke tests**
 
 Add to `tests/test_app.py`:
 
@@ -853,9 +853,9 @@ Add to `tests/test_app.py`:
         assert len(app.MODE_CHOICES) == 3
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
-- [ ] **Step 3: Rewrite app.py with mode switching**
+- [x] **Step 3: Rewrite app.py with mode switching**
 
 The updated `app.py` must:
 - Add a `MODE_CHOICES` list: `["Private Consultation", "Panel Discussion", "Free Debate"]`
@@ -912,12 +912,12 @@ IMPORTANT: Since Gradio processes events synchronously and we can't do true stre
 - For Mode 3 "Next Turn", generate one response per click
 - This avoids complex async/generator patterns in Gradio
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/ -v`
 Expected: All PASS
 
-- [ ] **Step 5: Manual test — launch locally**
+- [x] **Step 5: Manual test — launch locally**
 
 Run: `cd /Users/kmini/Github/scholars-table && python app.py`
 Test each mode:
@@ -925,7 +925,7 @@ Test each mode:
 - Mode 2: Select 2-3 scholars, ask question, generate rebuttals
 - Mode 3: Select 2-3 scholars, start debate, click Next Turn several times
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app.py tests/test_app.py
@@ -936,19 +936,19 @@ git commit -m "feat: Gradio UI with mode selector for all three discussion modes
 
 ### Task 6: Push to HF Spaces and Verify
 
-- [ ] **Step 1: Run full test suite**
+- [x] **Step 1: Run full test suite**
 
 Run: `cd /Users/kmini/Github/scholars-table && python -m pytest tests/ -v`
 Expected: All PASS
 
-- [ ] **Step 2: Push to both remotes**
+- [x] **Step 2: Push to both remotes**
 
 ```bash
 git push origin master
 git push hf master:main
 ```
 
-- [ ] **Step 3: Verify on HF Spaces**
+- [x] **Step 3: Verify on HF Spaces**
 
 Visit https://huggingface.co/spaces/KSvendsen/scholars-table
 - Test Mode 1 (should still work as before)
